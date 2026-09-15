@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
 configuration:
-  pageTitle: Quartz 5
+  pageTitle: Agreement Machines
   pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
@@ -16,8 +16,9 @@ configuration:
     fontOrigin: googleFonts
     cdnCaching: true
     typography:
-      header: Schibsted Grotesk
-      body: Source Sans Pro
+      title: EB GAramond
+      header: EB Garamond
+      body: EB Garamond
       code: IBM Plex Mono
     colors:
       lightMode:
@@ -159,6 +160,10 @@ plugins:
     enabled: true
   - source: "@quartz-community/explorer"
     enabled: true
+    options:
+      title: ""
+      folderDefaultState: open
+      folderClickBehavior: link
     layout:
       position: left
       priority: 50
