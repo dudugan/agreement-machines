@@ -130,6 +130,34 @@ describe("setOptionOverrides and cache invalidation", () => {
     assert.notStrictEqual(first, second)
   })
 
+  test("keeps constructors distinct when one is first seen after a clear", () => {
+    // Mirrors a dev-server rebuild where a plugin that was disabled on the
+    // first build gets enabled: the newly-seen constructor must not inherit
+    // the cache entry of one that was already instantiated.
+    registry = new ComponentRegistry()
+    const Existing = ((): QuartzComponent => {
+      const c = (() => null) as unknown as QuartzComponent
+      c.displayName = "existing"
+      return c
+    }) as unknown as QuartzComponentConstructor
+
+    registry.instantiate(Existing)
+    registry.setOptionOverrides("anything", { trigger: true })
+
+    const NewlyEnabled = ((): QuartzComponent => {
+      const c = (() => null) as unknown as QuartzComponent
+      c.displayName = "newly-enabled"
+      return c
+    }) as unknown as QuartzComponentConstructor
+
+    const fresh = registry.instantiate(NewlyEnabled)
+    const existing = registry.instantiate(Existing)
+
+    assert.strictEqual(fresh.displayName, "newly-enabled")
+    assert.strictEqual(existing.displayName, "existing")
+    assert.notStrictEqual(fresh, existing)
+  })
+
   test("ignores empty or undefined overrides", () => {
     registry = new ComponentRegistry()
     registry.setOptionOverrides("plugin", {})

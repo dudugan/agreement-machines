@@ -1,8 +1,142 @@
 @use "./variables.scss" as *;
 
-// put your custom CSS here!
+#quartz-root #quartz-body .center.full-width {
+  min-width: 0;
+  max-width: 80ch;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+// The bar is taken out of the page flow so it can span the whole viewport
+// rather than just the centre grid column. Everything that used to sit under
+// it — the page's top padding, the sticky sidebars, anchor jumps — is offset
+// by --nav-h below, so keep the two in step if you change the bar's height.
+:root {
+  --nav-h: 3.25rem;
+}
+
+// Collapse the wrapper so it stops contributing its own 6rem of top spacing;
+// the bar and the content beneath it are spaced from here instead.
+.page-header {
+  display: contents;
+}
+
+.page-header header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  box-sizing: border-box;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+  // Full-bleed bar, but hold its contents inside the same 1500px band that
+  // `.page` is capped to, so they don't drift off on very wide screens.
+  padding: 0 max(1.5rem, calc((100% - 1500px) / 2));
+  border-bottom: 1px solid var(--lightgray);
+  background: var(--light);
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+
+// The bar no longer occupies space in the flow, so reserve its height here.
+#quartz-root {
+  padding-top: var(--nav-h);
+}
+
+// The sidebars are sticky against the viewport top; drop them clear of the
+// bar. Scoped above mobile, where the left sidebar is static and full height.
+@media all and not ($mobile) {
+  #quartz-root #quartz-body .sidebar {
+    top: var(--nav-h);
+    height: calc(100vh - var(--nav-h));
+  }
+}
+
+// Keep table-of-contents jumps from landing underneath the bar.
+article :is(h1, h2, h3, h4, h5, h6) {
+  scroll-margin-top: calc(var(--nav-h) + 1rem);
+}
+
+.page-header .popover-hint {
+  margin-top: 1.5rem;
+}
+
+.page-title {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: 1rem;
+}
+.page-title a { font-size: 0; }
+.page-title a::after { content: "Home"; font-size: 1rem; }
+
+.backlinks {
+  flex: 1 1 auto;
+  min-width: 0;
+  // This is the element that actually scrolls when there are more backlinks
+  // than fit across. Hide its scrollbar: on a bar with a fixed height it ate
+  // 15px of the 52px, and the plugin already fades the trailing edge to show
+  // there is more. Scrolling itself still works.
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+.backlinks h3 { display: none; }
+// The list doesn't need a scroll area of its own on top of the one above —
+// dropping it reclaims another ~15px gutter that padded the bar out to 65px.
+.backlinks ul {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow: visible;
+  max-height: none;
+}
+.backlinks li { flex: 0 0 auto; }
+
 article {
-  max-width: 65ch;
-  font-family: serif;
-  a { color: inherit; }
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+strong { color: #c026a3; }
+em { color: #17a2a2; }
+
+a {
+  color: inherit;
+  font-weight: inherit;
+}
+
+a.internal { color: #7531a6; }
+// a.internal.broken { background-color: rgba(224, 182, 74, 0.12); }
+
+body.theme-dark {
+  a.internal { color: #a65bdb; }
+//   a.internal.broken { background-color: rgba(0, 128, 128, 0.20); }
+}
+
+#quartz-body > .center.full-width > footer,
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--light);
+  border-top: 1px solid var(--lightgray);
+  padding: 0.75rem 1.5rem;
+  z-index: 10;
+}
+
+#quartz-body > .center.full-width {
+  padding-bottom: 6rem;
 }

@@ -23,6 +23,13 @@ export class ComponentRegistry {
   private components = new Map<string, RegisteredComponent>()
   private instanceCache = new Map<string, QuartzComponent>()
   private optionOverrides = new Map<string, Record<string, unknown>>()
+  // Identity for constructors, used to build cache keys. Held in a WeakMap
+  // rather than stamped onto the constructor so ids can't leak between
+  // registries, and issued from a counter that never rewinds — deriving them
+  // from instanceCache.size let a cleared cache hand a newly-seen constructor
+  // an id another constructor still held, so the two shared a cache entry.
+  private ctorIds = new WeakMap<object, string>()
+  private nextCtorId = 0
 
   register(
     name: string,
@@ -68,12 +75,7 @@ export class ComponentRegistry {
   ): QuartzComponent {
     const optsKey = options !== undefined ? JSON.stringify(options) : ""
     // Use constructor identity + serialized options as cache key
-    // We store constructor name as a hint but rely on a unique id for identity
-    const ctorId =
-      (constructor as unknown as { __cacheId?: string }).__cacheId ??
-      ((constructor as unknown as { __cacheId: string }).__cacheId =
-        `ctor_${this.instanceCache.size}`)
-    const cacheKey = `${ctorId}:${optsKey}`
+    const cacheKey = `${this.idFor(constructor)}:${optsKey}`
 
     const cached = this.instanceCache.get(cacheKey)
     if (cached) return cached
@@ -117,12 +119,27 @@ export class ComponentRegistry {
     this.components.clear()
     this.instanceCache.clear()
     this.optionOverrides.clear()
+    // Reset the ids alongside the cache they key into. Resetting only one of
+    // the two is what caused constructors to collide on a shared cache entry.
+    this.ctorIds = new WeakMap()
+    this.nextCtorId = 0
+  }
+
+  /** Stable id for a constructor, assigned on first use. */
+  private idFor(constructor: QuartzComponentConstructor<any>): string {
+    let id = this.ctorIds.get(constructor)
+    if (id === undefined) {
+      id = `ctor_${this.nextCtorId++}`
+      this.ctorIds.set(constructor, id)
+    }
+    return id
   }
 
   private findCachedInstance(
     constructor: QuartzComponentConstructor<any>,
   ): QuartzComponent | undefined {
-    const ctorId = (constructor as unknown as { __cacheId?: string }).__cacheId
+    // Look up only — a constructor with no id has never been instantiated.
+    const ctorId = this.ctorIds.get(constructor)
     if (!ctorId) return undefined
     for (const [key, instance] of this.instanceCache) {
       if (key.startsWith(`${ctorId}:`)) return instance
