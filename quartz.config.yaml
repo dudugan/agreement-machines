@@ -100,6 +100,11 @@ plugins:
     order: 40
   - source: "@quartz-community/table-of-contents"
     enabled: true
+    options:
+      # The plugin gates on `toc.length > minEntries`, so the default of 1
+      # needs two headings. The home page has one ("reading list"), so drop
+      # this to 0 to let single-heading pages show a contents list too.
+      minEntries: 0
     order: 50
     layout:
       position: right

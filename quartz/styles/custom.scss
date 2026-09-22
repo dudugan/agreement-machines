@@ -1,6 +1,10 @@
 @use "./variables.scss" as *;
 
-#quartz-root #quartz-body .center.full-width {
+// The 404 renders through the `minimal` frame, which base Quartz forces to
+// 100% width — that is why it sat flush against the left edge instead of in
+// a column like every other page.
+#quartz-root #quartz-body .center.full-width,
+#quartz-root #quartz-body .center.minimal {
   min-width: 0;
   max-width: 80ch;
   margin: 0 auto;
@@ -45,7 +49,8 @@
 }
 
 // The bar no longer occupies space in the flow, so reserve its height here.
-#quartz-root {
+// The minimal frame (the 404) renders no header, so it gets no gap.
+#quartz-root:not([data-frame="minimal"]) {
   padding-top: var(--nav-h);
 }
 
@@ -115,6 +120,20 @@ em { color: #17a2a2; }
 a {
   color: inherit;
   font-weight: inherit;
+  // Links sit back a little and come forward on hover. Base Quartz's
+  // `a:hover { color: var(--tertiary) }` is outranked by the colour rules
+  // below, so without this there is no hover feedback on a link at all.
+  opacity: 0.75;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// The bar's own links are chrome, not prose — leave them at full strength.
+.page-header header a {
+  opacity: 1;
 }
 
 a.internal { color: #7531a6; }
